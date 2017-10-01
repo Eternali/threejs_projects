@@ -1,4 +1,4 @@
-let scene, camera, renderer;
+let scene, camera, renderer, loadingManager;
 let ambientLight, light;
 let player, mesh;
 let crate, crateTexture, crateNormalMap, crateBumpMap;
@@ -20,14 +20,52 @@ let looks = {
     DOWN: 3
 };
 
+// create a loading screen object
+let loadingScreen = {
+    scene: new THREE.Scene(),
+    camera: new THREE.PerspectiveCamera(90, 1000/600, 0.1, 1000),
+    box: new THREE.Mesh(
+            new THREE.BoxGeometry(0.5,0.5,0.5),
+            new THREE.MeshBasicMaterial({ color: 0x4444ff })
+    )
+};
+let RESOURCESLOADED = false;
+
+let models = {
+    tree: {
+        body: new Model('assets/Models/naturePack_089'),
+        pos: {x: -3, y: 0, z: 6},
+        angle: {x: 0, y: Math.PI/4, z: 0}
+    },
+    tent: {
+        body: new Model('assets/Models/naturePack_075'),
+        pos: {x: -3, y: 0, z: -6},
+        angle: {x: 0, y: Math.PI/2, z: 0}
+    }
+};
+
 function init () {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(90, 1000/600, 0.1, 1000);
     player = new Player(0, -5, camera);
 
+    // initialize loading screen like any other scene
+    loadingScreen.box.position.set(0,0,5);
+    loadingScreen.camera.lookAt(loadingScreen.box.position);
+    loadingScreen.scene.add(loadingScreen.box);
+
+    loadingManager = new THREE.LoadingManager();
+    loadingManager.onProgress = function (item, loaded, total) {
+        console.log(item, loaded, total);
+    };
+    loadingManager.onLoad = function () {
+        console.log('loaded all resources.');
+        RESOURCESLOADED = true;
+    };
+
     mesh = new THREE.Mesh(
         new THREE.BoxGeometry(1,1,1),
-        new THREE.MeshPhongMaterial({ color: 0xff9999, wireframe: false })
+        new THREE.MeshPhongMaterial({ color: 0xff7575, wireframe: false })
     );
     mesh.position.y += 2;
     mesh.receiveShadow = true;
@@ -48,7 +86,7 @@ function init () {
     light.shadow.camera.near = 0.1;
     light.shadow.camera.far = 25;
 
-    let textureLoader = new THREE.TextureLoader();
+    let textureLoader = new THREE.TextureLoader(loadingManager);
     crateTexture = textureLoader.load('assets/crate0/crate0_diffuse.png');
     crateBumpMap = textureLoader.load('assets/crate0/crate0_bump.png');
     crateNormalMap = textureLoader.load('assets/crate0/crate0_normal.png');
@@ -66,6 +104,34 @@ function init () {
     crate.position.set(3, 3/2, 3);
     crate.receiveShadow = true;
     crate.castShadow = true;
+
+    for (let _key in models) {
+        (function (key) {
+            models[key].body.load(loadingManager, models[key].pos, models[key].angle);
+            scene.add(models[key].body.mesh);
+        })(_key);
+    }
+
+    // model/material loading
+    // let mtlLoader = new THREE.MTLLoader(loadingManager);
+    // mtlLoader.load('assets/Models/naturePack_075.mtl', function (materials) {
+    //     materials.preload();
+    //     let objLoader = new THREE.OBJLoader(loadingManager);
+    //     objLoader.setMaterials(materials);
+    //     objLoader.load('assets/Models/naturePack_075.obj', function (mesh) {
+    //         // objs are made of many small meshes, traverse through them to add shadows.
+    //         mesh.traverse(function (node) {
+    //             if (node instanceof THREE.Mesh) {
+    //                 node.receiveShadow = true;
+    //                 node.castShadow = true;
+    //             }
+    //         });
+    //
+    //         mesh.position.set(-3,0,6);
+    //         mesh.rotation.y = Math.PI/4;
+    //         scene.add(mesh);
+    //     });
+    // });
 
     scene.add(mesh);
     scene.add(meshFloor);
@@ -85,6 +151,17 @@ function init () {
 }
 
 function animate () {
+    if (!RESOURCESLOADED) {
+        requestAnimationFrame(animate);
+
+        loadingScreen.box.position.x -= 0.05;
+        if (loadingScreen.box.position.x < -10) loadingScreen.box.position.x = 10;
+        loadingScreen.box.position.y = Math.sin(loadingScreen.box.position.x);
+
+        renderer.render(loadingScreen.scene, loadingScreen.camera);
+        return;
+    }
+
     requestAnimationFrame(animate);
 
     mesh.rotation.x += 0.01;
