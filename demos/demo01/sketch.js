@@ -33,12 +33,12 @@ let RESOURCESLOADED = false;
 
 let models = {
     tree: {
-        body: new Model('assets/Models/naturePack_089'),
+        body: new Model('naturePack_089'),
         pos: {x: -3, y: 0, z: 6},
         angle: {x: 0, y: Math.PI/4, z: 0}
     },
     tent: {
-        body: new Model('assets/Models/naturePack_075'),
+        body: new Model('naturePack_075'),
         pos: {x: -3, y: 0, z: -6},
         angle: {x: 0, y: Math.PI/2, z: 0}
     }
@@ -107,7 +107,8 @@ function init () {
 
     for (let _key in models) {
         (function (key) {
-            models[key].body.load(loadingManager, models[key].pos, models[key].angle);
+            models[key].body.loadMesh(loadingManager, models[key].pos, models[key].angle);
+            console.log(models[key].body.mesh.position.x);
             scene.add(models[key].body.mesh);
         })(_key);
     }

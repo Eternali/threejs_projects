@@ -3,7 +3,7 @@ function Model (src) {
     this.obj = 'assets/Models/' + src + '.obj';
     this.mesh = null;
 
-    this.load = function (loadingMgr, pos, angle) {
+    this.loadMesh = function (loadingMgr, pos, angle) {
         let mLoader = new THREE.MTLLoader(loadingMgr);
         mLoader.load(this.mtl, function (materials) {
             materials.preload();
@@ -18,9 +18,12 @@ function Model (src) {
                     }
                 });
 
+                console.log(mesh.position.x);
                 mesh.position.set(pos.x,pos.y,pos.z);
-                // mesh.rotation.set(angle.x,angle.y,angle.z);
+                mesh.rotation.set(angle.x,angle.y,angle.z);
+                console.log(mesh.position.x);
                 this.mesh = mesh;
+                console.log(this.mesh.position.x);
             });
         });
     }
