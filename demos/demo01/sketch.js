@@ -1,4 +1,5 @@
 let scene, camera, renderer, loadingManager;
+let clock, time, delta;
 let ambientLight, light;
 let player, mesh;
 let crate, crateTexture, crateNormalMap, crateBumpMap;
@@ -31,22 +32,20 @@ let loadingScreen = {
 };
 let RESOURCESLOADED = false;
 
+// holds the data about all possible types of objects in the scene (the "bluprints")
 let models = {
-    tree: {
-        body: new Model('naturePack_089'),
-        pos: {x: -3, y: 0, z: 6},
-        angle: {x: 0, y: Math.PI/4, z: 0}
-    },
-    tent: {
-        body: new Model('naturePack_075'),
-        pos: {x: -3, y: 0, z: -6},
-        angle: {x: 0, y: Math.PI/2, z: 0}
-    }
+    tree: new Model('naturePack_089', {x: -3, y: 0, z: 6}, {x: 0, y: Math.PI/4, z: 0}),
+    tent: new Model('naturePack_075', {x: -3, y: 0, z: -6}, {x: 0, y: Math.PI/2, z: 0}),
+    uzi1: new Model('uziLong', {x: 0, y: 0, z: 0}, {x: 0, y: 0, z: 0}, false)
 };
+
+// holds mesh bodies for all structures in the actual scene
+let meshes = {};
 
 function init () {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(90, 1000/600, 0.1, 1000);
+    clock = new THREE.Clock();
     player = new Player(0, -5, camera);
 
     // initialize loading screen like any other scene
@@ -59,7 +58,25 @@ function init () {
         console.log(item, loaded, total);
     };
     loadingManager.onLoad = function () {
-        console.log('loaded all resources.');
+        meshes['tent1'] = models.tent.mesh.clone();
+        meshes['tent2'] = models.tent.mesh.clone();
+        meshes['tent2'].position.z += 5;
+
+        meshes['tree1'] = models.tree.mesh.clone();
+        meshes['tree2'] = models.tree.mesh.clone();
+        meshes['tree2'].position.z += 3;
+
+        meshes['playergun'] = models.uzi1.mesh.clone();
+        meshes['playergun'].scale.set(7,7,7);
+
+        scene.add(meshes['tent1']);
+        scene.add(meshes['tent2']);
+
+        scene.add(meshes['tree1']);
+        scene.add(meshes['tree2']);
+
+        scene.add(meshes['playergun']);
+
         RESOURCESLOADED = true;
     };
 
@@ -78,7 +95,7 @@ function init () {
     meshFloor.rotation.x -= Math.PI / 2;
     meshFloor.receiveShadow = true;
 
-    ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+    ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
 
     light = new THREE.PointLight(0xffffff, 1.1, 28);
     light.position.set(-3,6,-3);
@@ -105,34 +122,29 @@ function init () {
     crate.receiveShadow = true;
     crate.castShadow = true;
 
+    // model/material loading
     for (let _key in models) {
         (function (key) {
-            models[key].body.loadMesh(loadingManager, models[key].pos, models[key].angle);
-            console.log(models[key].body.mesh.position.x);
-            scene.add(models[key].body.mesh);
+            let mtlLoader = new THREE.MTLLoader(loadingManager);
+            mtlLoader.load(models[key].mtl, function (materials) {
+                materials.preload();
+                let objLoader = new THREE.OBJLoader(loadingManager);
+                objLoader.setMaterials(materials);
+                objLoader.load(models[key].obj, function (mesh) {
+                    // objs are made of many small meshes, traverse through them to add shadows.
+                    mesh.traverse(function (node) {
+                        if (node instanceof THREE.Mesh) {
+                            node.castShadow = models[key].castShadow;
+                            node.receiveShadow = models[key].receiveShadow;
+                        }
+                    });
+                    models[key].mesh = mesh;
+                    models[key].mesh.position.set(models[key].pos.x,models[key].pos.y,models[key].pos.z);
+                    models[key].mesh.rotation.set(models[key].rot.x,models[key].rot.y,models[key].rot.z);
+                });
+            });
         })(_key);
     }
-
-    // model/material loading
-    // let mtlLoader = new THREE.MTLLoader(loadingManager);
-    // mtlLoader.load('assets/Models/naturePack_075.mtl', function (materials) {
-    //     materials.preload();
-    //     let objLoader = new THREE.OBJLoader(loadingManager);
-    //     objLoader.setMaterials(materials);
-    //     objLoader.load('assets/Models/naturePack_075.obj', function (mesh) {
-    //         // objs are made of many small meshes, traverse through them to add shadows.
-    //         mesh.traverse(function (node) {
-    //             if (node instanceof THREE.Mesh) {
-    //                 node.receiveShadow = true;
-    //                 node.castShadow = true;
-    //             }
-    //         });
-    //
-    //         mesh.position.set(-3,0,6);
-    //         mesh.rotation.y = Math.PI/4;
-    //         scene.add(mesh);
-    //     });
-    // });
 
     scene.add(mesh);
     scene.add(meshFloor);
@@ -151,6 +163,7 @@ function init () {
     animate();
 }
 
+
 function animate () {
     if (!RESOURCESLOADED) {
         requestAnimationFrame(animate);
@@ -165,6 +178,9 @@ function animate () {
 
     requestAnimationFrame(animate);
 
+    time = Date.now() * 0.0005;
+    delta = clock.getDelta();
+
     mesh.rotation.x += 0.01;
     mesh.rotation.y += 0.02;
 
@@ -177,6 +193,30 @@ function animate () {
 
     if (keyboard[37]) player.look(looks.LEFT);  // left arrow
     if (keyboard[39]) player.look(looks.RIGHT);  // right arrow
+
+    if (player.canShoot == 0 && keyboard[32]) player.fire();  // spacebar
+    if (player.canShoot > 0) player.canShoot -= 1;
+
+    // position gun in front of camera
+    meshes['playergun'].position.set(
+        camera.position.x - Math.sin(camera.rotation.y + Math.PI/6) * 0.6,
+        camera.position.y - 0.325 + Math.sin(time*4 + camera.position.x+camera.position.z)*0.01,
+        camera.position.z + Math.cos(camera.rotation.y + Math.PI/6) * 0.6
+    );
+    // rotate the gun to match camera
+    meshes['playergun'].rotation.set(
+        camera.rotation.x,
+        camera.rotation.y + Math.PI,
+        camera.rotation.z
+    );
+
+    for (let i in player.bullets) {
+        if (!player.bullets[i].alive) {
+            player.bullets.splice(i, 1);
+            continue;
+        }
+        player.bullets[i].position.add(player.bullets[i].velocity);
+    }
 
     renderer.render(scene, camera);
 }
