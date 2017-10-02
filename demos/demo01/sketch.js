@@ -90,7 +90,7 @@ function init () {
 
     meshFloor = new THREE.Mesh(
         new THREE.PlaneGeometry(20,20, 10,10),
-        new THREE.MeshPhongMaterial({ color: 0x757575, wireframe: false })
+        new THREE.MeshPhongMaterial({ color: 0x757575 })
     );
     meshFloor.rotation.x -= Math.PI / 2;
     meshFloor.receiveShadow = true;

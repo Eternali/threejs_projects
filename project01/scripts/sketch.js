@@ -1,4 +1,5 @@
 /*** Important global variable declarations ***/
+let width, height;
 let renderer, scene, camera;
 let loadingManager, clock, time, delta;
 let ambientLight, light, floor;
@@ -26,19 +27,19 @@ let looks = {
 // object for loading screen
 let loadingScreen = {
     scene: new THREE.Scene(),
-    camera: new THREE.PerspectiveCamera(90, 1200/600, 0.1, 1000),
+    camera: new THREE.PerspectiveCamera(90, 1200/700, 0.1, 1000),
     box: new THREE.Mesh(
         new THREE.BoxGeometry(1,1,1),
         new THREE.MeshBasicMaterial({ color: 0x4444ff })
     )
-}
+};
 let resourcesLoaded = false;
 
 /*** Scene object formatting and initializations ***/
 
 // make a dict for storing all possible types of objects in scene
 let models = {
-    tree: ,
+//     tree: ,
 //     crate: ,
 //
 //     uzi1: ,
@@ -49,19 +50,21 @@ let meshes = {};
 
 
 function init () {
+    width = window.innerWidth - 20;
+    height = window.innerHeight - 20;
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(90, 1200/600, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(90, width/height, 0.1, 1000);
     clock = new THREE.Clock();
 
     player = new Player(0, 0, camera);
 
     // initialize loading screen
-    // loadingScreen.box.position.set(0,0,5);
-    // loasingScreen.camera.lookAt(loadingScreen.box.position);
-    // loadingScreen.scene.add(loadingScreen.box);
+    loadingScreen.box.position.set(0,0,5);
+    loadingScreen.camera.lookAt(loadingScreen.box.position);
+    loadingScreen.scene.add(loadingScreen.box);
 
     loadingManager = new THREE.LoadingManager();
-    // what to do after loading progresses (e.g. show a progress bar)
+    // after loading progresses do (e.g. show a progress bar)
     loadingManager.onProgress = function (item, loaded, total) {
         console.log(item, loaded, total);
     };
@@ -74,30 +77,41 @@ function init () {
 
     floor = new THREE.Mesh(
         new THREE.PlaneGeometry(50,50, 10,10),
-        new THREE.MeshPhongMaterial({ color: 0x454545 })
+        new THREE.MeshBasicMaterial({ color: 0x454545 })
     );
+    floor.position.set(0,0,0);
     floor.rotation.x -= Math.PI / 2;
     floor.receiveShadow = true;
 
     // lighting
     ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
 
-    light = new THREE.PointLight(0xffffff, 1.1, 28);
-    light.position.set(40,6,40);
+    light = new THREE.PointLight(0xffffff, 1.6, 38);
+    light.position.set(-25,25,-10);
     light.castShadow = true;
     light.shadow.camera.near = 0.1;
-    light.shadow.camera.far = 25;
+    light.shadow.camera.far = 40;
 
+    camera.position.set(-20,10,-20);
+    camera.lookAt(new THREE.Vector3(0,0,0));
 
+    meshes.box = new THREE.Mesh(
+        new THREE.BoxGeometry(3,3,3),
+        new THREE.MeshPhongMaterial({ color: 0xff7575, wireframe: false })
+    );
+    meshes.box.position.y += 5
+    meshes.box.castShadow = true;
+    meshes.box.receiveShadow = true;
 
     // add all elements to the scene
     scene.add(floor);
+    scene.add(meshes.box);
     scene.add(ambientLight);
     scene.add(light);
 
     // create the renderer, add it to the DOM, and start animating
     renderer = new THREE.WebGLRenderer();
-    renderer.setSize(1200,600);
+    renderer.setSize(width, height);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.BasicShadowMap;
 
@@ -119,6 +133,9 @@ function animate () {
 
     time = Date.now() * 0.0005;
     delta = clock.getDelta();
+
+    meshes.box.rotation.x += 0.01;
+    meshes.box.rotation.y += 0.02;
 
     // render the updated scene and camera //
     renderer.render(scene, camera);
