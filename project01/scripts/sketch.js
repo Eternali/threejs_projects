@@ -38,6 +38,12 @@ let resourcesLoaded = false;
 /*** Scene object formatting and initializations ***/
 
 // make a dict for storing all possible types of objects in scene
+let basicModels = {
+    floor: new THREE.Mesh(
+        new THREE.PlaneGeometry(50,50, 10,10),
+        new THREE.MeshBasicMaterial({ color: 0x454545 })
+    )
+};
 let models = {
 //     tree: ,
 //     crate: ,
