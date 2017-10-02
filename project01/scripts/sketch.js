@@ -38,7 +38,7 @@ let resourcesLoaded = false;
 
 // make a dict for storing all possible types of objects in scene
 let models = {
-//     tree: ,
+    tree: ,
 //     crate: ,
 //
 //     uzi1: ,
@@ -125,11 +125,11 @@ function animate () {
 }
 
 
-function keyDown () {
+function keyDown (event) {
     keyboard[event.keyCode] = true;
 }
 
-function keyUp () {
+function keyUp (event) {
     keyboard[event.keyCode] = false;
 }
 
