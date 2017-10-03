@@ -1,9 +1,9 @@
 // object for generating threejs compatible terrain
-function TerrainGenerator (inwidth, indepth, scale) {
+function TerrainGenerator (inwidth, indepth, hscale) {
 
     this.inwidth = inwidth;
     this.indepth = indepth;
-    this.scale = scale;
+    this.hscale = hscale;
 
     this.createGeometry = function (inwidth=this.inwidth, indepth=this.indepth) {
         this.geometry = new THREE.PlaneBufferGeometry(inwidth, indepth, worldWidth-1, worldDepth-1);
@@ -19,13 +19,13 @@ function TerrainGenerator (inwidth, indepth, scale) {
         return this.geometry;
     };
 
-    this.generateHeight = function (width=this.inwidth, depth=this.indepth, hscale=this.scale) {
+    this.generateHeight = function (width=this.inwidth, depth=this.indepth, hscale=this.hscale) {
         let size = width * depth;
         let heights = new Uint8Array(size);
         for (let i = 0; i < size; i ++) {
             // note: ~~ is equivalent to flooring a float (cuts all decimals)
             let x = i % width, y = ~~ (i / width);
-            heights[i] = Math.abs(noise.simplex2(x, y)) * hscale;
+            // heights[i] = map(noise.simplex2(x, y), -1, 1, -hscale, hscale);
         }
 
         return heights;

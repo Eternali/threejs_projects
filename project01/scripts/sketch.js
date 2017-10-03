@@ -7,21 +7,26 @@ let player;
 
 // for handling keyboard events
 let keyboard = {};
+// for handling mouse events
+let mouseEnabled = false;  // this allows the user to rotate with the mouse instead of arrows
+let mouse = { x: 0, y: 0 };
+let mouseVec = { x: 0, y: 0 };
 
 // "enums" for player movement
 let dirs = {
     LEFT: 0,
     RIGHT: 1,
-    FORWARD: 2,
-    BACKWARD: 3,
-    UP: 4,
-    DOWN: 5
+    BACKWARD: 2,
+    FORWARD: 3,
+    DOWN: 4,
+    UP: 5
 };
+// used if mouse is not enabled
 let looks = {
-    LEFT: 0,
-    RIGHT: 1,
-    UP: 2,
-    DOWN: 3
+    LEFT: { x: -4, y: 0 },
+    RIGHT: { x: 4, y: 0 },
+    DOWN: { x: 0, y: -4 },
+    UP: { x: 0, y: 4 }
 };
 
 // object for loading screen
@@ -57,18 +62,18 @@ let meshes = {};
 
 function init () {
     //seed perlin noise
-    noise.seed(0);
+    noise.seed(Math.random());
 
     // initialize variables
     width = window.innerWidth - 20;
     depth = window.innerHeight - 20;
-    worldWidth = 1000;
-    worldDepth = 1000;
+    worldWidth = 30;
+    worldDepth = 30;
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(90, width/depth, 0.1, 1000);
     clock = new THREE.Clock();
 
-    player = new Player(0, 0, camera);
+    player = new Player(10, -10, camera);
 
     // initialize loading screen
     loadingScreen.box.position.set(0,0,5);
@@ -85,23 +90,24 @@ function init () {
         resourcesLoaded = true;
     };
 
-    let terrainGenerator = new TerrainGenerator(50, 50, 2);
+    let terrainGenerator = new TerrainGenerator(100, 100, 8);
     let terrainGeometry = terrainGenerator.createGeometry();
     terrain = new THREE.Mesh(
         terrainGeometry,
-        new THREE.MeshPhongMaterial({ color: 0x454545 })
+        new THREE.MeshPhongMaterial({ color: 0x454545, wireframe: true })
     );
     terrain.receiveShadow = true;
     // terrain = new THREE.Mesh(
     //     new THREE.PlaneGeometry(50,50, 10,10),
-    //     new THREE.MeshBasicMaterial({ color: 0x454545 })
+    //     new THREE.MeshPhongMaterial({ color: 0x454545 })
     // );
+    // terrain.rotateX(-Math.PI/2);
     // terrain.receiveShadow = true;
 
     // lighting
     ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 
-    light = new THREE.PointLight(0xffffff, 1.6, 38);
+    light = new THREE.PointLight(0xffffff, 1.8, 48);
     light.position.set(-25,25,-10);
     light.castShadow = true;
     light.shadow.camera.near = 0.1;
@@ -141,9 +147,13 @@ function animate () {
 
     // get user input //
     if (keyboard[65]) player.move(dirs.LEFT);  // A
-    if (keyboard[65]) player.move(dirs.RIGHT);  // D
-    if (keyboard[65]) player.move(dirs.FORWARD);  // W
-    if (keyboard[65]) player.move(dirs.BACKWARD);  // S
+    if (keyboard[68]) player.move(dirs.RIGHT);  // D
+    if (keyboard[83]) player.move(dirs.BACKWARD);  // S
+    if (keyboard[87]) player.move(dirs.FORWARD);  // W
+    if (keyboard[37]) player.look(looks.LEFT);  // left arrow
+    if (keyboard[39]) player.look(looks.RIGHT);  // right arrow
+    // if (keyboard[40]) player.look(looks.DOWN);  // down arrow
+    // if (keyboard[38]) player.look(looks.UP);  // up arrow
 
     // update game state //
 
@@ -166,8 +176,18 @@ function keyUp (event) {
     keyboard[event.keyCode] = false;
 }
 
+function mouseMove (event) {
+    if (!mouseEnabled) return;
+    mouseVec.x = event.clientX - mouse.x;
+    mouseVec.y = event.clientY - mouse.y;
+    mouse.x = event.x;
+    mouse.y = event.y;
+    player.look(mouseVec);
+}
+
 
 window.addEventListener('keydown', keyDown);
 window.addEventListener('keyup', keyUp);
+window.addEventListener('mousemove', mouseMove);
 
 window.onload = init;
