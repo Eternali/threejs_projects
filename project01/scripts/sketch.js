@@ -90,34 +90,35 @@ function init () {
         resourcesLoaded = true;
     };
 
-    let terrainGenerator = new TerrainGenerator(200, 200, 8);
-    let terrainGeometry = terrainGenerator.createGeometry();
-    terrain = new THREE.Mesh(
-        terrainGeometry,
-        new THREE.MeshPhongMaterial({ color: 0x454545, wireframe: true })
-    );
-    terrain.receiveShadow = true;
+    let terrainGenerator = new TerrainGenerator(200, 200, 20);
+    terrain = terrainGenerator.init();
+    // let terrainGeometry = terrainGenerator.createGeometry();
+    // terrain = new THREE.Mesh(
+    //     terrainGeometry,
+    //     new THREE.MeshPhongMaterial({ color: 0x454545, wireframe: false })
+    // );
+    // terrain.receiveShadow = true;
     // terrain = new THREE.Mesh(
     //     new THREE.PlaneGeometry(50,50, 10,10),
     //     new THREE.MeshPhongMaterial({ color: 0x454545 })
     // );
     // terrain.rotateX(-Math.PI/2);
-    // terrain.receiveShadow = true;
+    terrain.receiveShadow = true;
 
     // lighting
     ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 
-    light = new THREE.PointLight(0xffffff, 1.8, 48);
-    light.position.set(-25,25,-10);
+    light = new THREE.PointLight(0xffffff, 6, 525);
+    light.position.set(-200,400,0);
     light.castShadow = true;
     light.shadow.camera.near = 0.1;
-    light.shadow.camera.far = 40;
+    light.shadow.camera.far = 600;
 
     meshes.box = new THREE.Mesh(
-        new THREE.BoxGeometry(3,3,3),
+        new THREE.BoxGeometry(10,10,10),
         new THREE.MeshPhongMaterial({ color: 0xff7575, wireframe: false })
     );
-    meshes.box.position.y += 3;
+    meshes.box.position.y += 30;
     meshes.box.castShadow = true;
     meshes.box.receiveShadow = true;
 
