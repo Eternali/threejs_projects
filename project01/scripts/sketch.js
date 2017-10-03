@@ -67,13 +67,13 @@ function init () {
     // initialize variables
     width = window.innerWidth - 20;
     depth = window.innerHeight - 20;
-    worldWidth = 30;
-    worldDepth = 30;
+    worldWidth = 60;
+    worldDepth = 60;
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(90, width/depth, 0.1, 1000);
     clock = new THREE.Clock();
 
-    player = new Player(10, -10, camera);
+    player = new Player(50, -50, camera);
 
     // initialize loading screen
     loadingScreen.box.position.set(0,0,5);
@@ -90,7 +90,7 @@ function init () {
         resourcesLoaded = true;
     };
 
-    let terrainGenerator = new TerrainGenerator(100, 100, 8);
+    let terrainGenerator = new TerrainGenerator(200, 200, 8);
     let terrainGeometry = terrainGenerator.createGeometry();
     terrain = new THREE.Mesh(
         terrainGeometry,

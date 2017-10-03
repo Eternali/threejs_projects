@@ -19,16 +19,19 @@ function TerrainGenerator (inwidth, indepth, hscale) {
         return this.geometry;
     };
 
-    this.generateHeight = function (width=this.inwidth, depth=this.indepth, hscale=this.hscale) {
+    this.generateHeight = function (width=this.inwidth, depth=this.indepth,
+                                    hscale=this.hscale, quality=1, passes=4) {
         let size = width * depth;
         let heights = new Float32Array(size);
-        for (let i = 0; i < size; i ++) {
-            // note: ~~ is equivalent to flooring a float (cuts all decimals)
-            let x = i % width, y = ~~ (i / width);
-            // heights[i] = map(noise.simplex2(x, y), -1, 1, -hscale, hscale);
-            heights[i] = noise.simplex2(x, y) * hscale;
+        for (let j = 0; j < passes; j ++) {
+            for (let i = 0; i < size; i ++) {
+                // note: ~~ is equivalent to flooring a float (cuts all decimals)
+                let x = i % width, y = ~~ (i / width);
+                // heights[i] = map(noise.simplex2(x, y), -1, 1, -hscale, hscale);
+                heights[i] = noise.simplex2(x / quality, y / quality) * hscale;
+            }
+            quality += 5;
         }
-
         return heights;
     };
 
