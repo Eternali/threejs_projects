@@ -21,11 +21,11 @@ function TerrainGenerator (inwidth, indepth, hscale) {
 
     this.generateHeight = function (width=this.inwidth, depth=this.indepth, hscale=this.hscale) {
         let size = width * depth;
-        let heights = new Uint8Array(size);
+        let heights = new Float32Array(size);
         for (let i = 0; i < size; i ++) {
             // note: ~~ is equivalent to flooring a float (cuts all decimals)
             let x = i % width, y = ~~ (i / width);
-            // heights[i] = map(noise.simplex2(x, y), -1, 1, -hscale, hscale);
+            heights[i] = Math.map(noise.simplex2(x, y), -1, 1, -hscale, hscale);
         }
 
         return heights;
