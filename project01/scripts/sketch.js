@@ -38,12 +38,12 @@ let resourcesLoaded = false;
 /*** Scene object formatting and initializations ***/
 
 // make a dict for storing all possible types of objects in scene
-let basicModels = {
-    floor: new THREE.Mesh(
-        new THREE.PlaneGeometry(50,50, 10,10),
-        new THREE.MeshBasicMaterial({ color: 0x454545 })
-    )
-};
+// let basicModels = {
+//     floor: THREE.Mesh(
+//         new THREE.PlaneGeometry(50,50, 10,10),
+//         new THREE.MeshBasicMaterial({ color: 0x454545 })
+//     )
+// };
 let models = {
 //     tree: ,
 //     crate: ,
@@ -82,8 +82,6 @@ function init () {
     };
     // when assets are finished loading, generate all meshes to scene.
     loadingManager.onLoad = function () {
-
-
         resourcesLoaded = true;
     };
 
@@ -94,18 +92,20 @@ function init () {
         new THREE.MeshPhongMaterial({ color: 0x454545 })
     );
     terrain.receiveShadow = true;
+    // terrain = new THREE.Mesh(
+    //     new THREE.PlaneGeometry(50,50, 10,10),
+    //     new THREE.MeshBasicMaterial({ color: 0x454545 })
+    // );
+    // terrain.receiveShadow = true;
 
     // lighting
-    ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+    ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
 
     light = new THREE.PointLight(0xffffff, 1.6, 38);
     light.position.set(-25,25,-10);
     light.castShadow = true;
     light.shadow.camera.near = 0.1;
     light.shadow.camera.far = 40;
-
-    camera.position.set(-20,10,-20);
-    camera.lookAt(new THREE.Vector3(0,0,0));
 
     meshes.box = new THREE.Mesh(
         new THREE.BoxGeometry(3,3,3),
@@ -135,11 +135,15 @@ function init () {
 
 function animate () {
     // check for different scenes //
-    if (!resourcesLoaded) {
-
-    }
+    if (!resourcesLoaded) {}
 
     requestAnimationFrame(animate);
+
+    // get user input //
+    if (keyboard[65]) player.move(dirs.LEFT);  // A
+    if (keyboard[65]) player.move(dirs.RIGHT);  // D
+    if (keyboard[65]) player.move(dirs.FORWARD);  // W
+    if (keyboard[65]) player.move(dirs.BACKWARD);  // S
 
     // update game state //
 
