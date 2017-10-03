@@ -1,8 +1,8 @@
 /*** Important global variable declarations ***/
-let width, height;
+let width, depth, worldWidth, worldDepth;
 let renderer, scene, camera;
 let loadingManager, clock, time, delta;
-let ambientLight, light, floor;
+let ambientLight, light, terrain;
 let player;
 
 // for handling keyboard events
@@ -56,10 +56,16 @@ let meshes = {};
 
 
 function init () {
+    //seed perlin noise
+    noise.seed(0);
+
+    // initialize variables
     width = window.innerWidth - 20;
-    height = window.innerHeight - 20;
+    depth = window.innerHeight - 20;
+    worldWidth = 1000;
+    worldDepth = 1000;
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(90, width/height, 0.1, 1000);
+    camera = new THREE.PerspectiveCamera(90, width/depth, 0.1, 1000);
     clock = new THREE.Clock();
 
     player = new Player(0, 0, camera);
@@ -81,13 +87,13 @@ function init () {
         resourcesLoaded = true;
     };
 
-    floor = new THREE.Mesh(
-        new THREE.PlaneGeometry(50,50, 10,10),
-        new THREE.MeshBasicMaterial({ color: 0x454545 })
+    let terrainGenerator = new TerrainGenerator(50, 50, 2);
+    let terrainGeometry = terrainGenerator.createGeometry();
+    terrain = new THREE.Mesh(
+        terrainGeometry,
+        new THREE.MeshPhongMaterial({ color: 0x454545 })
     );
-    floor.position.set(0,0,0);
-    floor.rotation.x -= Math.PI / 2;
-    floor.receiveShadow = true;
+    terrain.receiveShadow = true;
 
     // lighting
     ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
@@ -105,19 +111,19 @@ function init () {
         new THREE.BoxGeometry(3,3,3),
         new THREE.MeshPhongMaterial({ color: 0xff7575, wireframe: false })
     );
-    meshes.box.position.y += 5
+    meshes.box.position.y += 3;
     meshes.box.castShadow = true;
     meshes.box.receiveShadow = true;
 
     // add all elements to the scene
-    scene.add(floor);
+    scene.add(terrain);
     scene.add(meshes.box);
     scene.add(ambientLight);
     scene.add(light);
 
     // create the renderer, add it to the DOM, and start animating
     renderer = new THREE.WebGLRenderer();
-    renderer.setSize(width, height);
+    renderer.setSize(width, depth);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.BasicShadowMap;
 
