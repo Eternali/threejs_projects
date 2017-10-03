@@ -25,7 +25,8 @@ function TerrainGenerator (inwidth, indepth, hscale) {
         for (let i = 0; i < size; i ++) {
             // note: ~~ is equivalent to flooring a float (cuts all decimals)
             let x = i % width, y = ~~ (i / width);
-            heights[i] = Math.map(noise.simplex2(x, y), -1, 1, -hscale, hscale);
+            // heights[i] = map(noise.simplex2(x, y), -1, 1, -hscale, hscale);
+            heights[i] = noise.simplex2(x, y) * hscale;
         }
 
         return heights;
