@@ -2,11 +2,11 @@ function Player (startx, startz, camera=null) {
 
     this.camera = camera;
     this.cameraEnabled = (this.camera !== null);
-    this.height = 2.2;
+    this.height = 50.2;
 
     if (this.cameraEnabled) {
         this.camera.position.set(startx, this.height, startz);
-        this.camera.lookAt(new THREE.Vector3(0,this.height,0));
+        this.camera.lookAt(new THREE.Vector3(0,0,0));
     }
 
     this.speed = 0.15;

@@ -2,7 +2,6 @@
 let width, height, worldWidth, worldHeight;
 let renderer, camera, scene, loadingManager;
 let clock, time, delta;
-let floor, ambientLight, light;
 let player;
 
 // for holding keyboard data
@@ -23,18 +22,54 @@ let dirs = {
 };
 // used if mouse is not enabled
 let looks = {
-    LEFT: { x: -4, y: 0 },
-    RIGHT: { x: 4, y: 0 },
-    DOWN: { x: 0, y: -4 },
-    UP: { x: 0, y: 4 }
+    LEFT: { x: -3, y: 0 },
+    RIGHT: { x: 3, y: 0 },
+    DOWN: { x: 0, y: -3 },
+    UP: { x: 0, y: 3 }
 };
 
 // objects for storing data about classes of meshes in the scene
 let models = {
 };
-
 // holds mesh bodies for all structures in the actual scene
 let meshes = {};
+
+// holds plane bodies for all planes in the scene
+let planes = {};
+// holds light objects for all lights in the scene
+let lights = {};
+
+
+// wall generation
+function makeWall (length, density, x, z, angle) {
+    let wall = new THREE.Mesh(
+        new THREE.PlaneGeometry(length,10, density,density),
+        new THREE.MeshPhongMaterial({ color: 0xff0000, wireframe: false })
+    );
+    wall.position.y += 5;
+    wall.rotation.x += Math.PI;
+    wall.rotation.y += angle;
+    wall.receiveShadow = true;
+
+    return wall
+}
+
+function generateWalls () {
+    let walls = [];
+
+    let wall01 = makeWall();
+    walls.push(makeWall(50, 50, 0, 0, 0));
+
+    return walls;
+}
+
+function addPlanes (planes) {
+    for (let p in planes) {
+        if (p == 'walls') addPlanes(planes[p]);
+        else scene.add(planes[p]);
+    }
+}
+
 
 /****  INITIALIZE THE ENVIRONMENT  ****/
 function init () {
@@ -48,22 +83,29 @@ function init () {
     camera = new THREE.PerspectiveCamera(9, width/height, 0.1, 1000);
     clock = new THREE.Clock();
 
-    player = new Player(50, -50, camera);
+    player = new Player(200, -200, camera);
 
     // generate floor
-    floor = new THREE.Mesh(
+    planes['floor'] = new THREE.Mesh(
         new THREE.PlaneGeometry(150,150, worldWidth, worldHeight),
-        new THREE.MeshPhongMaterial({ color: 0x454545, wireframe: true })
+        new THREE.MeshPhongMaterial({ color: 0x454545, wireframe: false })
     );
-    floor.rotation.x += -Math.PI/2;
-    floor.receiveShadow = true;
+    planes['floor'].rotation.x -= Math.PI/2;
+    planes['floor'].receiveShadow = true;
+
+    // generate walls
+    planes['walls'] = generateWalls();
 
     // lighting
-    ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    lights['ambientLight'] = new THREE.AmbientLight(0xffffff, 0.3);
+    lights['pointLight00'] = new Lamp(-75, -25);
+    lights['pointLight01'] = new Lamp(-75, 25);
 
     // add elements to scene
-    scene.add(floor);
-    scene.add(ambientLight);
+    addPlanes(planes);
+    for (let l in lights) {
+        scene.add((~l.indexOf('point')) ? lights[l].light : lights[l]);
+    }
 
     // create the renderer, add it to the DOM, and start animating
     renderer = new THREE.WebGLRenderer();
