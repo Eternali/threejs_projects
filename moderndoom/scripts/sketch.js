@@ -43,12 +43,13 @@ let lights = {};
 // wall generation
 function makeWall (length, density, x, z, angle) {
     let wall = new THREE.Mesh(
-        new THREE.PlaneGeometry(length,10, density,density),
+        new THREE.PlaneGeometry(length,4, density,density),
         new THREE.MeshPhongMaterial({ color: 0xff0000, wireframe: false })
     );
-    wall.position.y += 5;
+    wall.position.y += 2;
     wall.rotation.x += Math.PI;
     wall.rotation.y += angle;
+    wall.material.side = THREE.DoubleSide;
     wall.receiveShadow = true;
 
     return wall
@@ -83,7 +84,7 @@ function init () {
     camera = new THREE.PerspectiveCamera(9, width/height, 0.1, 1000);
     clock = new THREE.Clock();
 
-    player = new Player(200, -200, camera);
+    player = new Player(-70, -70, camera);
 
     // generate floor
     planes['floor'] = new THREE.Mesh(

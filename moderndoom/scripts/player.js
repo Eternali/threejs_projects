@@ -2,7 +2,7 @@ function Player (startx, startz, camera=null) {
 
     this.camera = camera;
     this.cameraEnabled = (this.camera !== null);
-    this.height = 50.2;
+    this.height = 2;
 
     if (this.cameraEnabled) {
         this.camera.position.set(startx, this.height, startz);
